@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.alert-success {
+    @apply bg-blue-500
+}
+.alert-error {
+    @apply bg-red-500
+}
+.h-screen-minus-3\.5rem {
+    height: calc(100vh - 3.5rem);
+}
+.h-screen-minus-banyak {
+    height: calc(100vh - (4.5rem + 0.5rem + 0.5rem + 2.5rem));
+}
+.edit-input-active {
+    @apply border-b-2 border-b-neutral-500 focus:border-b-blue-500 bg-white shadow;
+}
