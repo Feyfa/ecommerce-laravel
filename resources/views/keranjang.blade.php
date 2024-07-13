@@ -15,7 +15,7 @@
                 @endif
 
                 @foreach ($keranjangs as $keranjang)    
-                    <div class="row flex items-start border border-neutral-400 bg-white rounded shadow-md p-2 gap-2">
+                    <div class="row flex items-start border border-neutral-400 bg-white rounded shadow-md p-2 gap-2 relative">
                         <div>
                             <input type="checkbox" {{ $keranjang->checked == 1 ? 'checked' : '' }} class="w-5 h-5">
                         </div>
@@ -46,6 +46,7 @@
                                         @method('DELETE')
                                         
                                         <input type="hidden" name="id" value="{{ $keranjang->id }}">
+                                        <input type="hidden" name="product_id" value="{{ $keranjang->product_id }}">
                                         <button type="submit" name="delete_keranjang_submit">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
                                                 <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
@@ -53,6 +54,12 @@
                                             </svg>
                                         </button>
                                     </form>
+
+                                    <div class="total-keranjang-container border border-zinc-300 absolute bottom-2 right-2 py-0.5 px-1 rounded">
+                                        <span><i class="bi bi-dash-lg mr-2.5 cursor-pointer"></i></span>
+                                        <input value="{{ $keranjang->product_count }}" class="input-keranjang text-center w-10 outline-none text-sm" readonly type="number" min="1" name="total_keranjang">
+                                        <span><i class="bi bi-plus-lg cursor-pointer"></i></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -87,6 +94,7 @@
                     $(element).click(function (e) 
                     {
                         let id = $("input[name='id']").eq(index).val();
+                        let product_id = $("input[name='product_id']").eq(index).val();
 
                         if($(this).prop('checked')) 
                         {
@@ -95,6 +103,7 @@
                                 url: "/keranjang/checked",
                                 data: {
                                     'id': id,
+                                    'product_id': product_id,
                                     'checked': true
                                 },
                                 success: function (response) {
@@ -109,6 +118,7 @@
                                 url: "/keranjang/checked",
                                 data: {
                                     'id': id,
+                                    'product_id': product_id,
                                     'checked': false
                                 },
                                 success: function (response) {
@@ -117,6 +127,18 @@
                             });
                         }
                     });
+                });
+
+                $('.input-keranjang').focus(function (e) { 
+                    e.preventDefault();
+                    $('.total-keranjang-container').removeClass('border-zinc-300');
+                    $('.total-keranjang-container').addClass('border-green-500');
+                });
+
+                $('.input-keranjang').blur(function (e) { 
+                    e.preventDefault();
+                    $('.total-keranjang-container').removeClass('border-green-500');
+                    $('.total-keranjang-container').addClass('border-zinc-300');
                 });
             });
         </script>

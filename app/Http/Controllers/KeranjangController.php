@@ -7,24 +7,29 @@ use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class KeranjangController extends Controller
 {
     public function index(): Response
     {
-        $keranjangs = Keranjang::where('user_id_buyer', auth()->user()->id)
-                               ->latest()
-                               ->get();
+        $keranjangs = Keranjang::select(
+                                    'keranjangs.*',
+                                    DB::raw('COUNT(*) as product_count'),
+                                    DB::raw('SUM(products.price) as price_total')
+                                )
+                                ->join('products', 'keranjangs.product_id', '=', 'products.id')
+                                ->where('user_id_buyer', auth()->user()->id)
+                                ->groupBy('product_id')
+                                ->get();
 
-        $totalPrice =  Product::whereHas('Keranjang', function ($query) {
-            return $query->where('checked', true);
-        })->pluck('price')
-          ->sum();
-
-        // dd(
-        //     $keranjangs,
-        //     $keranjangs[0]->product
-        // );
+        $totalPrice = 0;
+        foreach($keranjangs as $keranjang)
+        {
+            if($keranjang->checked == 1) {
+                $totalPrice += $keranjang->price_total; 
+            }
+        }
 
         return response()->view('keranjang', [
             'title' => 'Halaman Keranjang',
@@ -63,8 +68,15 @@ class KeranjangController extends Controller
     {
        if($request->has('delete_keranjang_submit'))
        {
-            Keranjang::where('id', $request->input('id'))
-                     ->delete();
+            $keranjangs = Keranjang::where('product_id', $request->product_id)
+                                   ->where('user_id_buyer', auth()->user()->id)
+                                   ->get();
+
+            foreach($keranjangs as $keranjang)
+            {
+                $keranjang->delete();
+            }
+            
 
             return redirect('/keranjang')->with('flash', [
                 'message' => 'Barang Di Keranjang Berhasil Di Hapus',
@@ -84,36 +96,76 @@ class KeranjangController extends Controller
     public function checked(Request $request)
     {
         if($request->ajax())
-        {
+        {                           
             // saat checked di tangkap $request->input('checked') 
             // maka tipe datanya string bukan boolean
             if($request->input('checked') === 'true')
             {
-                Keranjang::where('id', $request->id)
-                         ->update(['checked' => true]);
+                $keranjangs = Keranjang::where('product_id', $request->product_id)
+                                       ->where('user_id_buyer', auth()->user()->id)
+                                       ->get();
+                            
+                foreach($keranjangs as $keranjang)
+                {
+                    $keranjang->checked = true;
+                    $keranjang->save();
+                }
 
-                $totalPrice =  Product::whereHas('keranjang', function ($query) {
-                    return $query->where('checked', true);
-                })->pluck('price')
-                  ->sum();
+                $keranjangs = Keranjang::select(
+                                            'keranjangs.*',
+                                            DB::raw('COUNT(*) as product_count'),
+                                            DB::raw('SUM(products.price) as price_total')
+                                        )
+                                        ->join('products', 'keranjangs.product_id', '=', 'products.id')
+                                        ->where('user_id_buyer', auth()->user()->id)
+                                        ->groupBy('product_id')
+                                        ->get();
+
+                $totalPrice = 0;
+                foreach($keranjangs as $keranjang)
+                {
+                    if($keranjang->checked == 1) {
+                        $totalPrice += $keranjang->price_total; 
+                    }
+                }
                 
                 return response()->view('cheked-result', [
-                    'keranjangs' => Keranjang::latest()->get(),
+                    'keranjangs' => $keranjangs,
                     'totalPrice' => $totalPrice,
                 ]);
             }
             else
             {
-                Keranjang::where('id', $request->id)
-                         ->update(['checked' => false]);
+                $keranjangs = Keranjang::where('product_id', $request->product_id)
+                                       ->where('user_id_buyer', auth()->user()->id)
+                                       ->get();
+                            
+                foreach($keranjangs as $keranjang)
+                {
+                    $keranjang->checked = false;
+                    $keranjang->save();
+                }
 
-                $totalPrice =  Product::whereHas('keranjang', function ($query) {
-                    return $query->where('checked', true);
-                })->pluck('price')
-                  ->sum();
+                $keranjangs = Keranjang::select(
+                                            'keranjangs.*',
+                                            DB::raw('COUNT(*) as product_count'),
+                                            DB::raw('SUM(products.price) as price_total')
+                                        )
+                                        ->join('products', 'keranjangs.product_id', '=', 'products.id')
+                                        ->where('user_id_buyer', auth()->user()->id)
+                                        ->groupBy('product_id')
+                                        ->get();
+                
+                $totalPrice = 0;
+                foreach($keranjangs as $keranjang)
+                {
+                    if($keranjang->checked == 1) {
+                        $totalPrice += $keranjang->price_total; 
+                    }
+                }
                 
                 return response()->view('cheked-result', [
-                    'keranjangs' => Keranjang::latest()->get(),
+                    'keranjangs' => $keranjangs,
                     'totalPrice' => $totalPrice,
                 ]);
             }
