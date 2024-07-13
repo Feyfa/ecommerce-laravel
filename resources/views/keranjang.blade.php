@@ -89,6 +89,7 @@
         <script>
             $(document).ready(function () 
             {
+                /* EVENT CHECKBOX */
                 $('input[type=checkbox]').each(function (index, element) 
                 {
                     $(element).click(function (e) 
@@ -128,7 +129,29 @@
                         }
                     });
                 });
+                /* EVENT CHECKBOX */
 
+                /* EVENT MINUS KERANJANG */
+                $('.bi-dash-lg').each(function (index, element) 
+                {
+                    $(element).click(function (e) 
+                    {
+                        let product_id = $("input[name='product_id']").eq(index).val();
+
+                        $.ajax({
+                            type: "GET",
+                            url: "/keranjang/checked",
+                            data: {
+                                'product_id': product_id,
+                            },
+                            success: function (response) {
+                                $('.keranjang-container').html(response);
+                            }
+                        });
+                    });
+                });
+                /* EVENT MINUS KERANJANG */
+                
                 $('.input-keranjang').focus(function (e) { 
                     e.preventDefault();
                     $('.total-keranjang-container').removeClass('border-zinc-300');
